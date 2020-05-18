@@ -24,7 +24,7 @@ Resources:
     Type: Custom::HostedZone
     Properties:
       ServiceToken: !ImportValue cfn-hosted-zone-resource:HostedZoneLambdaArn
-      Name: test.com
+      Name: thisisatest.com
       DelegationSetId: !ImportValue cfn-dns:DelegationSetId
 
   ArtifactStore:

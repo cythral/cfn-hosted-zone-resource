@@ -183,6 +183,8 @@ namespace Cythral.CloudFormation.Resources
             if (props.HostedZoneConfig != null) request.HostedZoneConfig = props.HostedZoneConfig;
             if (props.VPCs != null) request.VPC = props.VPCs.First();
 
+            Console.WriteLine(JsonSerializer.Serialize(request));
+
             var client = route53Factory.Create();
             var createHostedZoneResponse = await client.CreateHostedZoneAsync(request);
             var data = new Data { Id = createHostedZoneResponse.HostedZone.Id };

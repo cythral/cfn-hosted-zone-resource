@@ -1,0 +1,204 @@
+Description: CICD pipeline for cfn-hosted-zone-resource
+Parameters:
+  GithubToken:
+    Type: String
+    NoEcho: true
+    Default: ""
+    Description: OAuth token for the Github organization.  Needs read/write access to repos and repo hooks
+
+  GithubOwner:
+    Type: String
+    Description: Owner of the github repository to track
+
+  GithubRepo:
+    Type: String
+    Description: Name of the github repository to track
+
+  GithubBranch:
+    Type: String
+    Default: ""
+    Description: Name of the github branch to track
+
+Resources:
+  ArtifactStore:
+    Type: AWS::S3::Bucket
+
+  ArtifactStorePolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ArtifactStore
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow 
+            Action: s3:*Object
+            Resource:
+              - !Sub arn:aws:s3:::${ArtifactStore}
+              - !Sub arn:aws:s3:::${ArtifactStore}/*
+            Principal:
+              AWS:
+                - !Ref AWS::AccountId
+                - !ImportValue cfn-metadata:DevAgentRoleArn
+                - !ImportValue cfn-metadata:ProdAgentRoleArn
+
+  BuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub ${AWS::StackName}-build
+      BadgeEnabled: true
+      ServiceRole: !ImportValue cfn-utilities:BuilderRoleArn
+      EncryptionKey: !ImportValue cfn-utilities:ArtifactKeyArn
+      Environment:
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
+        ComputeType: BUILD_GENERAL1_SMALL 
+        EnvironmentVariables:
+          - Name: ARTIFACT_STORE
+            Value: !Ref ArtifactStore
+        Type: LINUX_CONTAINER
+      Cache:
+        Type: LOCAL
+        Modes:
+          - LOCAL_DOCKER_LAYER_CACHE
+      Artifacts:
+        Type: S3
+        Location: !Ref ArtifactStore
+        Name: buildResults.zip
+        NamespaceType: BUILD_ID
+        Packaging: ZIP
+      Source:
+        Type: GITHUB
+        Location: !Sub https://github.com/${GithubOwner}/${GithubRepo}.git
+        ReportBuildStatus: true
+  
+  SupersessionQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      ContentBasedDeduplication: true
+      FifoQueue: true
+      MessageRetentionPeriod: 1209600
+
+  SupersessionEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      FunctionName: !ImportValue cfn-core:DeploymentSupersessionFunctionArn
+      EventSourceArn: !GetAtt SupersessionQueue.Arn
+
+  DeploymentQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      ContentBasedDeduplication: true
+      VisibilityTimeout: 3600
+      FifoQueue: true
+      MessageRetentionPeriod: 1209600
+
+  DeploymentEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      FunctionName: !ImportValue cfn-core:StackDeploymentFunctionArn
+      EventSourceArn: !GetAtt DeploymentQueue.Arn
+
+  StateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !ImportValue cfn-utilities:MasterRoleArn
+      StateMachineName: !Sub ${AWS::StackName}-pipeline
+      DefinitionString: !Sub
+        - |
+          {
+            "StartAt": "Build",
+            "States": {
+              "Build": {
+                "Type": "Task",
+                "Resource": "arn:aws:states:::codebuild:startBuild.sync",
+                "Parameters": {
+                  "ProjectName": "${BuildProject}",
+                  "SourceVersion.$": "$.head_commit.id"
+                },
+                "ResultPath": "$.BuildOutput",
+                "Next": "On Default Branch?"
+              },
+              "On Default Branch?": {
+                "Type": "Choice",
+                "Choices": [
+                  {
+                    "Variable": "$.on_default_branch",
+                    "BooleanEquals": true,
+                    "Next": "Check if Superseded"
+                  },
+                  {
+                    "Variable": "$.on_default_branch",
+                    "BooleanEquals": false,
+                    "Next": "Success"
+                  } 
+                ]
+              },
+              "Check if Superseded": {
+                "Type": "Task",
+                "Resource": "arn:aws:states:::sqs:sendMessage.waitForTaskToken",
+                "ResultPath": "$.SupersededOutput",
+                "Next": "Was Superseded?",
+                "Parameters": {
+                  "QueueUrl": "${SupersessionQueue}",
+                  "MessageGroupId": "${GithubRepo}",
+                  "MessageBody": {
+                    "Pipeline": "${GithubRepo}",
+                    "CommitTimestamp.$": "$.head_commit.timestamp",
+                    "Token.$": "$$.Task.Token"
+                  }
+                }
+              },
+              "Was Superseded?": {
+                "Type": "Choice",
+                "Choices": [
+                  {
+                    "Variable": "$.SupersededOutput.Superseded",
+                    "BooleanEquals": true,
+                    "Next": "Success"
+                  },
+                  {
+                    "Variable": "$.SupersededOutput.Superseded",
+                    "BooleanEquals": false,
+                    "Next": "Deploy to Shared"
+                  }
+                ]
+              },
+              "Deploy to Shared": {
+                "Type": "Task",
+                "Resource": "arn:aws:states:::sqs:sendMessage.waitForTaskToken",
+                "ResultPath": "$.SharedOutputs",
+                "Parameters": {
+                  "QueueUrl": "${DeploymentQueue}",
+                  "MessageGroupId": "${GithubRepo}-shared",
+                  "MessageBody": {
+                    "StackName": "${GithubRepo}",
+                    "ZipLocation.$": "$.BuildOutput.Build.Artifacts.Location",
+                    "TemplateFileName": "hosted-zone.template.yml",
+                    "RoleArn": "${SharedRoleArn}",
+                    "Token.$": "$$.Task.Token",
+                    "Capabilities": ["CAPABILITY_IAM"],
+                    "EnvironmentName": "shared",
+                    "CommitInfo": {
+                      "GithubOwner": "${GithubOwner}",
+                      "GithubRepository": "${GithubRepo}",
+                      "GithubRef.$": "$.head_commit.id"
+                    },
+                    "SsoConfig": {
+                      "GoogleClientId": "${SharedGoogleClientId}",
+                      "IdentityPoolId": "${SharedIdentityPoolId}"
+                    }
+                  }
+                },
+                "Next": "Success"
+              }
+              "Success": {
+                "Type": "Succeed"
+              }
+            }
+          }
+        - # Roles
+          SharedRoleArn: !ImportValue cfn-utilities:MasterRoleArn
+
+          # Shared SSO
+          SharedGoogleClientId: !ImportValue sso-aws-registry:SharedGoogleClientId
+          SharedIdentityPoolId: !ImportValue sso-aws-registry:SharedIdentityPoolId
+ 

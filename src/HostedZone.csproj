@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <StackName>cfn-hosted-zone-resource</StackName>
+        <StackDescription>Hosted Zone Custom Resource with support for setting the DelegationSetId</StackDescription>
+        <GenerateCodeFromAttributesCore>$(GenerateCodeFromAttributesCore);CreateConfigFile</GenerateCodeFromAttributesCore>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <PackageReference Include="AWSSDK.Route53" Version="3.3.104.5" />
+      <PackageReference Include="Cythral.CloudFormation.CustomResource" Version="0.2.24-alpha" />
+    </ItemGroup>
+</Project>

@@ -1,0 +1,28 @@
+version: 0.2
+env:
+  variables:
+    DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: "true"
+    CONFIGURATION: "Release"
+
+phases:
+  install:
+    runtime-versions:
+      dotnet: 3.1
+
+  pre_build:
+    commands:
+      - dotnet --info
+
+  build:
+    commands:
+      - dotnet publish
+          -c $CONFIGURATION
+          /p:DeploymentBucket=$ARTIFACT_STORE
+          /p:Deploy=false
+          /p:PackagedFile=$(pwd)/hosted-zone.template.yml
+      - dotnet test -c $CONFIGURATION
+
+artifacts:
+  discard-paths: yes
+  files:
+    - hosted-zone.template.yml

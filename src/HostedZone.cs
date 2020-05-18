@@ -138,7 +138,7 @@ namespace Cythral.CloudFormation.Resources
         /// <returns>Response to send back to CloudFormation</returns>
         public async Task<Response> Create()
         {
-
+            #region Create Helper Functions
             async Task DoCreateQueryLoggingConfig(Properties props, Data data)
             {
                 if (props.QueryLoggingConfig != null)
@@ -171,8 +171,31 @@ namespace Cythral.CloudFormation.Resources
                     AssociateVPCs(vpcs.ToList(), data.Id);
                 }
             }
+            #endregion
 
+            var client = route53Factory.Create();
             var props = Request.ResourceProperties;
+
+            #region Dont create resource if it already exists
+            var listHostedZonesResponse = await client.ListHostedZonesByNameAsync(new ListHostedZonesByNameRequest
+            {
+                DNSName = props.Name
+            });
+
+            if (listHostedZonesResponse.HostedZones.Count > 0)
+            {
+                return new Response
+                {
+                    PhysicalResourceId = listHostedZonesResponse.HostedZones[0].Id,
+                    Data = new Data
+                    {
+                        Id = listHostedZonesResponse.HostedZones[0].Id
+                    }
+                };
+            }
+            #endregion
+
+            #region Create Hosted Zone
             var request = new CreateHostedZoneRequest
             {
                 CallerReference = DateTime.Now.ToString(),
@@ -185,14 +208,14 @@ namespace Cythral.CloudFormation.Resources
 
             Console.WriteLine(JsonSerializer.Serialize(request));
 
-            var client = route53Factory.Create();
             var createHostedZoneResponse = await client.CreateHostedZoneAsync(request);
             var data = new Data { Id = createHostedZoneResponse.HostedZone.Id };
 
             PhysicalResourceId = data.Id;
             Console.WriteLine(JsonSerializer.Serialize(createHostedZoneResponse));
+            #endregion
 
-            // wait until the hosted zone finishes creating
+            #region Wait until Hosted Zone is available
             var getChangeRequest = new GetChangeRequest { Id = createHostedZoneResponse.ChangeInfo.Id };
             while ((await client.GetChangeAsync(getChangeRequest)).ChangeInfo.Status == PENDING)
             {
@@ -200,6 +223,7 @@ namespace Cythral.CloudFormation.Resources
                 Console.WriteLine($"Create hosted zone still pending... sleeping {wait} seconds");
                 Thread.Sleep(wait * 1000);
             }
+            #endregion
 
             Task.WaitAll(new Task[] {
                 Task.Run(() => DoCreateQueryLoggingConfig(props, data)),

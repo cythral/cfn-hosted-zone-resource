@@ -16,6 +16,7 @@ using Cythral.CloudFormation.Resources.Factories;
 using FluentAssertions;
 
 using NSubstitute;
+using NSubstitute.ClearExtensions;
 
 using NUnit.Framework;
 
@@ -39,8 +40,17 @@ namespace Cythral.CloudFormation.Resources.Tests
         public void SetupRoute53()
         {
             TestUtils.SetPrivateField(hostedZone, "route53Factory", route53Factory);
-            route53Factory.ClearReceivedCalls();
+            route53Factory.ClearSubstitute();
+            route53Client.ClearSubstitute();
+
             route53Factory.Create().Returns(route53Client);
+
+            route53Client
+            .ListHostedZonesByNameAsync(Arg.Any<ListHostedZonesByNameRequest>())
+            .Returns(new ListHostedZonesByNameResponse
+            {
+                HostedZones = new List<Amazon.Route53.Model.HostedZone> { }
+            });
 
             route53Client
             .CreateHostedZoneAsync(Arg.Any<CreateHostedZoneRequest>())
@@ -222,6 +232,47 @@ namespace Cythral.CloudFormation.Resources.Tests
                 )
             );
         }
+
+        [Test]
+        public async Task CreateShouldReturnIfHostedZoneAlreadyExists()
+        {
+            var logGroupArn = "arn:aws:logs::log-group:example.com";
+            var request = new Request<HostedZone.Properties>
+            {
+                RequestType = RequestType.Create,
+                ResourceProperties = new HostedZone.Properties
+                {
+                    Name = "example.com",
+                    QueryLoggingConfig = new QueryLoggingConfig
+                    {
+                        CloudWatchLogsLogGroupArn = logGroupArn,
+                    },
+                }
+            };
+
+            var id = "test";
+
+            route53Client
+            .ListHostedZonesByNameAsync(Arg.Any<ListHostedZonesByNameRequest>())
+            .Returns(new ListHostedZonesByNameResponse
+            {
+                HostedZones = new List<Amazon.Route53.Model.HostedZone> {
+                    new Amazon.Route53.Model.HostedZone {
+                        Id = id
+                    }
+                }
+            });
+
+            hostedZone.Request = request;
+            var response = await hostedZone.Create();
+            var data = (HostedZone.Data)response.Data;
+
+            data.Id.Should().BeEquivalentTo(id);
+
+            await route53Client.DidNotReceive().CreateHostedZoneAsync(Arg.Any<CreateHostedZoneRequest>());
+        }
+
+
 
         /// <summary>
         /// Tests to see if Create calls route53:CreateQueryLoggingConfig with the correct values

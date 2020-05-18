@@ -24,6 +24,7 @@ namespace Cythral.CloudFormation.Resources
     [CustomResource]
     public partial class HostedZone
     {
+        #region Inner Classes
 
         /// <summary>
         /// Resource properties for Hosted Zones.
@@ -53,6 +54,10 @@ namespace Cythral.CloudFormation.Resources
         {
             public string Id = "";
         }
+
+        #endregion
+
+        #region Fields & Properties
 
         /// <summary>
         /// Client used to make API calls to Route53
@@ -124,6 +129,9 @@ namespace Cythral.CloudFormation.Resources
             }
         }
 
+        #endregion
+
+        #region Methods
         /// <summary>
         /// Creates a new Hosted Zone in Route 53
         /// </summary>
@@ -409,4 +417,5 @@ namespace Cythral.CloudFormation.Resources
             Console.WriteLine($"Delete Query Logging Config Response: {JsonSerializer.Serialize(deleteConfigResp)}");
         }
     }
+    #endregion
 }

@@ -30,7 +30,7 @@ Resources:
       PolicyDocument:
         Version: 2012-10-17
         Statement:
-          - Effect: Allow 
+          - Effect: Allow
             Action: s3:*Object
             Resource:
               - !Sub arn:aws:s3:::${ArtifactStore}
@@ -50,7 +50,7 @@ Resources:
       EncryptionKey: !ImportValue cfn-utilities:ArtifactKeyArn
       Environment:
         Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
-        ComputeType: BUILD_GENERAL1_SMALL 
+        ComputeType: BUILD_GENERAL1_SMALL
         EnvironmentVariables:
           - Name: ARTIFACT_STORE
             Value: !Ref ArtifactStore
@@ -69,7 +69,7 @@ Resources:
         Type: GITHUB
         Location: !Sub https://github.com/${GithubOwner}/${GithubRepo}.git
         ReportBuildStatus: true
-  
+
   SupersessionQueue:
     Type: AWS::SQS::Queue
     Properties:
@@ -189,7 +189,7 @@ Resources:
                   }
                 },
                 "Next": "Success"
-              }
+              },
               "Success": {
                 "Type": "Succeed"
               }
@@ -201,4 +201,3 @@ Resources:
           # Shared SSO
           SharedGoogleClientId: !ImportValue sso-aws-registry:SharedGoogleClientId
           SharedIdentityPoolId: !ImportValue sso-aws-registry:SharedIdentityPoolId
- 

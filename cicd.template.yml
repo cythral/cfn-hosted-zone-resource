@@ -23,14 +23,6 @@ Resources:
   ArtifactStore:
     Type: AWS::S3::Bucket
 
-  TestHostedZone:
-    Type: Custom::HostedZone
-    DeletionPolicy: Retain
-    Properties:
-      ServiceToken: !ImportValue cfn-hosted-zone-resource:HostedZoneLambdaArn
-      Name: thisisatest.com
-      DelegationSetId: !ImportValue cfn-dns:DelegationSetId
-
   ArtifactStorePolicy:
     Type: AWS::S3::BucketPolicy
     Properties:

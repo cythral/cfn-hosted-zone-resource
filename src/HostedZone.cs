@@ -33,10 +33,10 @@ namespace Cythral.CloudFormation.Resources
         {
             [UpdateRequiresReplacement]
             [Required]
-            public string Name { get; set; } = "";
+            public string Name { get; set; } = null!;
 
             [UpdateRequiresReplacement]
-            public string DelegationSetId { get; set; } = "";
+            public string DelegationSetId { get; set; } = null!;
 
             public HostedZoneConfig? HostedZoneConfig { get; set; }
 

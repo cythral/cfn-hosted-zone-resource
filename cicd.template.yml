@@ -20,13 +20,6 @@ Parameters:
     Description: Name of the github branch to track
 
 Resources:
-  TestHostedZone:
-    Type: Custom::HostedZone
-    Properties:
-      ServiceToken: !ImportValue cfn-hosted-zone-resource:HostedZoneLambdaArn
-      Name: thisisatest.com
-      DelegationSetId: !ImportValue cfn-dns:DelegationSetId
-
   ArtifactStore:
     Type: AWS::S3::Bucket
 

@@ -3,7 +3,6 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <StackName>cfn-hosted-zone-resource</StackName>
         <StackDescription>Hosted Zone Custom Resource with support for setting the DelegationSetId</StackDescription>
-        <GenerateCodeFromAttributesCore>$(GenerateCodeFromAttributesCore);CreateConfigFile</GenerateCodeFromAttributesCore>
     </PropertyGroup>
     
     <ItemGroup>

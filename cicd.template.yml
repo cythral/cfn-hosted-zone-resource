@@ -181,10 +181,6 @@ Resources:
                       "GithubOwner": "${GithubOwner}",
                       "GithubRepository": "${GithubRepo}",
                       "GithubRef.$": "$.head_commit.id"
-                    },
-                    "SsoConfig": {
-                      "GoogleClientId": "${SharedGoogleClientId}",
-                      "IdentityPoolId": "${SharedIdentityPoolId}"
                     }
                   }
                 },
@@ -197,7 +193,3 @@ Resources:
           }
         - # Roles
           SharedRoleArn: !ImportValue cfn-utilities:MasterRoleArn
-
-          # Shared SSO
-          SharedGoogleClientId: !ImportValue sso-aws-registry:SharedGoogleClientId
-          SharedIdentityPoolId: !ImportValue sso-aws-registry:SharedIdentityPoolId

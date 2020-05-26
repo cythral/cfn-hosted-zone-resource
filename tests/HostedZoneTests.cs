@@ -236,13 +236,14 @@ namespace Cythral.CloudFormation.Resources.Tests
         [Test]
         public async Task CreateShouldReturnIfHostedZoneAlreadyExists()
         {
+            var name = "example.com";
             var logGroupArn = "arn:aws:logs::log-group:example.com";
             var request = new Request<HostedZone.Properties>
             {
                 RequestType = RequestType.Create,
                 ResourceProperties = new HostedZone.Properties
                 {
-                    Name = "example.com",
+                    Name = name,
                     QueryLoggingConfig = new QueryLoggingConfig
                     {
                         CloudWatchLogsLogGroupArn = logGroupArn,
@@ -258,6 +259,7 @@ namespace Cythral.CloudFormation.Resources.Tests
             {
                 HostedZones = new List<Amazon.Route53.Model.HostedZone> {
                     new Amazon.Route53.Model.HostedZone {
+                        Name = name,
                         Id = id
                     }
                 }

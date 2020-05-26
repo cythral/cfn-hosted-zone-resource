@@ -182,14 +182,16 @@ namespace Cythral.CloudFormation.Resources
                 DNSName = props.Name
             });
 
-            if (listHostedZonesResponse.HostedZones.Count > 0)
+            var id = (from zone in listHostedZonesResponse.HostedZones where zone.Name == props.Name select zone.Id).FirstOrDefault();
+
+            if (id != null)
             {
                 return new Response
                 {
-                    PhysicalResourceId = listHostedZonesResponse.HostedZones[0].Id,
+                    PhysicalResourceId = id,
                     Data = new Data
                     {
-                        Id = listHostedZonesResponse.HostedZones[0].Id
+                        Id = id
                     }
                 };
             }

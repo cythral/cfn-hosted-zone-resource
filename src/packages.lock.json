@@ -4,9 +4,9 @@
     ".NETCoreApp,Version=v3.1": {
       "AWSSDK.Route53": {
         "type": "Direct",
-        "requested": "[3.7.1.5, )",
-        "resolved": "3.7.1.5",
-        "contentHash": "SJbD9alcCE7FfjVyuUa1JItQxtnIaoo3LKfTWOxc874JDw9BO3u74RM/J0jwNzGqWp6LCur74NbdtHayWoWT6g==",
+        "requested": "[3.7.1.6, )",
+        "resolved": "3.7.1.6",
+        "contentHash": "V7FyNBSbCN66hlScsawZj89B+XMPDqChanzrcZJfs4HQX2xqL/pkjRWBBRwfTGR3xdwT7dS2LoU3H7c9741z4A==",
         "dependencies": {
           "AWSSDK.Core": "[3.7.2.2, 4.0.0)"
         }

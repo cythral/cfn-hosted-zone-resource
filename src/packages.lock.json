@@ -4,11 +4,11 @@
     ".NETCoreApp,Version=v3.1": {
       "AWSSDK.Route53": {
         "type": "Direct",
-        "requested": "[3.7.1.11, )",
-        "resolved": "3.7.1.11",
-        "contentHash": "KAfBH87D6JyecfBeA35rA74eKzhJRjakw5BOZwXbm+vbDFUDSQ3wm6wFuqUBzJBkc22ZP1sXKSLdxmbpWcCyGQ==",
+        "requested": "[3.7.1.12, )",
+        "resolved": "3.7.1.12",
+        "contentHash": "O3NVwxI6yFUFQBbZJY55+C9fxauirTKGHPaJAbIDH+Avc+KVhVTvhLiAsVbi19Ri5orwmEcKfIxItp9OWqNfTw==",
         "dependencies": {
-          "AWSSDK.Core": "[3.7.2.6, 4.0.0)"
+          "AWSSDK.Core": "[3.7.2.7, 4.0.0)"
         }
       },
       "Cythral.CloudFormation.CustomResource": {
@@ -30,8 +30,8 @@
       },
       "AWSSDK.Core": {
         "type": "Transitive",
-        "resolved": "3.7.2.6",
-        "contentHash": "5TfmNFJAue8FyCEMaswldFbHTrb02RevAy/PncfFcj5vey7v39v3Ee7IsEXuCsHNisBpveVHZBt0nz72Ujx3gQ=="
+        "resolved": "3.7.2.7",
+        "contentHash": "4mcH2fC3ujcANIbiOI/F0Vqnc4qUoUuvkvvsz6oCoNyCHhcRucvWIzVT/S5seOwOGWN8xl5IqmDAprPmr0KG9Q=="
       },
       "Cythral.CloudFormation.CustomResource.Attributes": {
         "type": "Transitive",

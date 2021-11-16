@@ -70,15 +70,15 @@
       },
       "AWSSDK.Core": {
         "type": "Transitive",
-        "resolved": "3.7.4.3",
-        "contentHash": "YBN+d0J+s/fYLZrp6qdB9uJDzrjrcjAYheOpyJqwo8quqjl5pEAXmWfc9uA0PbckWGEdSxcwl/KuuPnPtAycfQ=="
+        "resolved": "3.7.4.4",
+        "contentHash": "5CVA9hnBsQ6eA0MFFUi4nXSvugZ09H5Zmbp2+MxhxkiCF8hbAa3PGnsvbkzLAPlos4+B4n6mvycGulJIkOOwoQ=="
       },
       "AWSSDK.Route53": {
         "type": "Transitive",
-        "resolved": "3.7.1.55",
-        "contentHash": "OAonQv5T3Dn/RB/Pd2rMfivYBpmp+v3f2dDuDe20ZwFM8hvVtwWZStk+RUO7jINbjubY/8DvCa65JJ9sbvniXw==",
+        "resolved": "3.7.1.56",
+        "contentHash": "rriMOLljFzlLPsH5l9izIHIYuhaXBZQ4x8i04McX8TUejwrvHs11H9GXpMm+XkH3ilU0fk9wD7hI3bLg5iErsg==",
         "dependencies": {
-          "AWSSDK.Core": "[3.7.4.3, 4.0.0)"
+          "AWSSDK.Core": "[3.7.4.4, 4.0.0)"
         }
       },
       "Castle.Core": {
@@ -918,7 +918,7 @@
       "hostedzone": {
         "type": "Project",
         "dependencies": {
-          "AWSSDK.Route53": "3.7.1.55",
+          "AWSSDK.Route53": "3.7.1.56",
           "Cythral.CloudFormation.CustomResource": "0.2.24-alpha"
         }
       }
